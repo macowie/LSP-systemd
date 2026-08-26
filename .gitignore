@@ -1,0 +1,9 @@
+# python
+__pycache__/
+*.pyc
+
+# sublime text
+.sublime/
+*.sublime-project
+*.sublime-workspace
+package-metadata.json

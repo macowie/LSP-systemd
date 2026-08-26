@@ -1,0 +1,19 @@
+{
+	// The command to start the language server.
+	"command": ["$server_file"],
+
+	"env": {
+		// Logging configuration
+		//   Valid values are: "trace", "debug", "info", "warn", "error"
+		"RUST_LOG": "warn",
+	},
+
+	// The server version to install. Valid values are fixed versions like `v2026.08.03` or `latest`.
+	"server_version": "latest",
+
+	// base scope selectors to attach to
+	"selector": "source.systemd",
+
+	// type of buffers to attach to
+	"schemes": ["file", "buffer"],
+}

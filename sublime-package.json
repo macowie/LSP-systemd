@@ -1,0 +1,69 @@
+{
+	"contributions": {
+		"settings": [
+			{
+				"file_patterns": [
+					"/LSP-systemd.sublime-settings"
+				],
+				"schema": {
+					"$id": "sublime://settings/LSP-systemd",
+					"definitions": {
+						"PluginConfig": {
+							"properties": {
+								"server_version": {
+									"description": "The systemd-lsp release tag to install, e.g. `v2026.08.03`, or `latest`.",
+									"type": "string",
+									"default": "latest"
+								}
+							}
+						}
+					},
+					"allOf": [
+						{
+							"$ref": "sublime://settings/LSP-plugin-base"
+						},
+						{
+							"$ref": "sublime://settings/LSP-systemd#/definitions/PluginConfig"
+						}
+					]
+				}
+			},
+			{
+				"file_patterns": [
+					"/LSP.sublime-settings"
+				],
+				"schema": {
+					"properties": {
+						"clients": {
+							"properties": {
+								"LSP-systemd": {
+									"$ref": "sublime://settings/LSP-systemd#/definitions/PluginConfig"
+								}
+							}
+						}
+					}
+				}
+			},
+			{
+				"file_patterns": [
+					"/*.sublime-project"
+				],
+				"schema": {
+					"properties": {
+						"settings": {
+							"properties": {
+								"LSP": {
+									"properties": {
+										"LSP-systemd": {
+											"$ref": "sublime://settings/LSP-systemd#/definitions/PluginConfig"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		]
+	}
+}
