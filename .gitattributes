@@ -1,0 +1,17 @@
+# Excluded from the exported package (Package Control uses `git archive`).
+
+.gitattributes export-ignore
+.gitignore export-ignore
+
+*.sublime-project export-ignore
+*.sublime-workspace export-ignore
+
+*.png export-ignore
+*.jpg export-ignore
+*.jpeg export-ignore
+*.gif export-ignore
+*.webp export-ignore
+images/** export-ignore
+screenshots/** export-ignore
+
+syntax_test_systemd.service export-ignore
