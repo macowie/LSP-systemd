@@ -6,6 +6,8 @@
 *.sublime-project export-ignore
 *.sublime-workspace export-ignore
 
+pyproject.toml export-ignore
+
 *.png export-ignore
 *.jpg export-ignore
 *.jpeg export-ignore
@@ -13,5 +15,3 @@
 *.webp export-ignore
 images/** export-ignore
 screenshots/** export-ignore
-
-syntax_test_systemd.service export-ignore
