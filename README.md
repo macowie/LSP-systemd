@@ -5,7 +5,8 @@ systemd unit file support for Sublime Text's LSP plugin, provided through
 
 Provides diagnostics, context-aware autocompletion, hover documentation, and
 formatting for `.service`, `.socket`, `.timer`, `.mount`, `.automount`,
-`.swap`, `.target`, `.path`, `.slice`, and `.scope` unit files.
+`.swap`, `.target`, `.path`, `.slice`, `.scope`, as well as 
+Quadlet `.container`,`.volume`, `.kube`, `.pod`, `.image`, and `.build` unit files. 
 
 ## Installation
 
