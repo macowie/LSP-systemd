@@ -8,7 +8,8 @@
 		"RUST_LOG": "warn",
 	},
 
-	// The server version to install. Valid values are fixed versions like `v2026.08.03` or `latest`.
+	// The server version to install. You may need to restart after changing this setting.
+	// Valid values are 'latest', a fixed version like `v2026.08.03` or to disable automatic downloads: `none'.
 	"server_version": "latest",
 
 	// base scope selectors to attach to
