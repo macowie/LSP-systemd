@@ -7,16 +7,16 @@ import time
 from urllib.request import Request as HttpRequest, urlopen
 
 import sublime
-from LSP.plugin import AbstractPlugin, ClientConfig, WorkspaceFolder, register_plugin, unregister_plugin
+from LSP.plugin import ClientConfig, ClientResponse, LspPlugin, OnPreStartContext, PluginStartError, ST_STORAGE_PATH
 
 __all__ = [
-    "SystemdLspPlugin",
+    "LspSystemd",
     "plugin_loaded",
     "plugin_unloaded",
 ]
 
 
-class SystemdLspPlugin(AbstractPlugin):
+class LspSystemd(LspPlugin):
     package_name: str = __spec__.parent
     """
     The package name on file system.
@@ -39,48 +39,30 @@ class SystemdLspPlugin(AbstractPlugin):
     # ---- public API methods ----
 
     @classmethod
-    def name(cls):
-        return "LSP-systemd"
+    def on_pre_start_async(cls, context: OnPreStartContext) -> None:
+        desired_version = context.configuration.server_version 
+        if desired_version is None or desired_version == "":
+            desired_version = "latest"
+        if cls.needs_update(desired_version):
+            cls.download_binary(desired_version)
+        if not os.path.isfile(cls.server_file()):
+            PluginStartError("Server binary missing after installation attempt")
+        context.variables["server_file"] = cls.server_file()
+        context.variables["server_path"] = cls.server_path()
+        
+    # ---- internal methods -----
 
     @classmethod
-    def configuration(cls):
-        settings_file_name = f"{cls.name()}.sublime-settings"
-        cls.settings = sublime.load_settings(settings_file_name)
-        return cls.settings, f"Packages/{cls.package_name}/{settings_file_name}"
-
-    @classmethod
-    def needs_update_or_installation(cls):
-        server_file = cls.server_file()
-        is_upgrade = os.path.isfile(server_file)
-        if is_upgrade:
-            next_update_check, server_version = cls.load_metadata()
-        else:
-            next_update_check, server_version = 0, ""
-
-        cls.server_version = str(cls.settings.get("server_version", "latest"))
-        if cls.server_version == "latest":
-            if int(time.time()) >= next_update_check:
-                try:
-                    available_version = cls.available_version()
-                    if available_version != server_version:
-                        cls.server_version = available_version
-                        return True
-                except BaseException:
-                    cls.save_metadata(False, server_version)
-
-            return False
-
-        return cls.server_version != server_version
-
-    @classmethod
-    def install_or_update(cls):
+    def download_binary(cls, desired_version: str):
         if not cls.server_version:
             raise RuntimeError()
 
         os.makedirs(cls.server_path(), exist_ok=True)
 
         server_file = cls.server_file()
-        with contextlib.closing(urlopen(cls.download_url(cls.server_version))) as response:
+
+        version = desired_version if desired_version != "latest" else cls.available_version()
+        with contextlib.closing(urlopen(cls.download_url(version))) as response:
             with open(server_file, "wb") as out:
                 while True:
                     block = response.read(5 * 1024 * 1024)
@@ -94,22 +76,28 @@ class SystemdLspPlugin(AbstractPlugin):
         cls.save_metadata(True, cls.server_version)
 
     @classmethod
-    def can_start(
-        cls,
-        window: sublime.Window,
-        initiating_view: sublime.View,
-        workspace_folders: list[WorkspaceFolder],
-        configuration: ClientConfig,
-    ) -> str | None:
-        if not os.path.isfile(cls.server_file()):
-            return f"{cls.name()}: server binary not found, please run 'Package Control: Satisfy Dependencies'"
-        return super().can_start(window, initiating_view, workspace_folders, configuration)
+    def needs_update(cls, desired_version: str) -> bool:
+        server_file = cls.server_file()
+        is_upgrade = os.path.isfile(server_file)
+        if is_upgrade:
+            next_update_check, server_version = cls.load_metadata()
+        else:
+            next_update_check, server_version = 0, ""
 
-    @classmethod
-    def additional_variables(cls) -> dict[str, str]:
-        return {"server_file": cls.server_file(), "server_path": cls.server_path()}
+        cls.server_version = desired_version
+        if cls.server_version == "latest":
+            if int(time.time()) >= next_update_check:
+                try:
+                    available_version = cls.available_version()
+                    if available_version != server_version:
+                        cls.server_version = available_version
+                        return True
+                except BaseException:
+                    cls.save_metadata(False, server_version)
 
-    # ---- internal methods -----
+            return False
+
+        return cls.server_version != server_version
 
     @classmethod
     def available_version(cls):
@@ -171,7 +159,7 @@ class SystemdLspPlugin(AbstractPlugin):
 
     @classmethod
     def server_path(cls) -> str:
-        return os.path.join(cls.storage_path(), cls.package_name)
+        return os.path.join(ST_STORAGE_PATH, cls.package_name)
 
     @classmethod
     def metadata_file(cls) -> str:
@@ -200,9 +188,8 @@ class SystemdLspPlugin(AbstractPlugin):
 
 
 def plugin_loaded() -> None:
-    register_plugin(SystemdLspPlugin)
-
+    LspSystemd.register()
 
 def plugin_unloaded() -> None:
-    SystemdLspPlugin.cleanup()
-    unregister_plugin(SystemdLspPlugin)
+    LspSystemd.cleanup()
+    LspSystemd.unregister()
